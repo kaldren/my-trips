@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { profileInitial, profileName } from "./format";
+import { profileInitial, profileName, profilePath } from "./format";
 
 describe("profileName", () => {
   it("uses the display name, or a fallback when it is blank", () => {
@@ -18,3 +18,12 @@ describe("profileInitial", () => {
   });
 });
 
+
+describe("profilePath", () => {
+  const id = "11111111-1111-1111-1111-111111111111";
+
+  it("uses the username when there is one, otherwise the id", () => {
+    expect(profilePath({ id, username: "JohnDoe" })).toBe("/JohnDoe");
+    expect(profilePath({ id, username: null })).toBe(`/${id}`);
+  });
+});
