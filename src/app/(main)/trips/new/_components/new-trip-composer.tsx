@@ -41,7 +41,7 @@ import {
 } from "@/features/trips/schemas";
 import { addVisits } from "@/features/visits/actions";
 import { MAX_VISITS } from "@/features/visits/schemas";
-import type { Place } from "@/lib/maptiler/geocoding";
+import type { Place } from "@/lib/maps/geocoding";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 

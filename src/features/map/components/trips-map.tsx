@@ -11,7 +11,7 @@ import Map, {
   type MapRef,
 } from "react-map-gl/maplibre";
 
-import { mapStyleUrl } from "@/lib/maptiler/config";
+import { mapStyleUrl } from "@/lib/maps/style";
 import { cn } from "@/lib/utils";
 
 import { boundsForPoints, routeLine, type MapPoint } from "../utils";

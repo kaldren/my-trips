@@ -5,7 +5,7 @@
 - Next.js 16 (App Router), TypeScript
 - Tailwind CSS, shadcn/ui
 - Supabase (Postgres, Auth, RLS, `@supabase/ssr`)
-- MapLibre GL JS (`react-map-gl/maplibre`), MapTiler
+- MapLibre GL JS (`react-map-gl/maplibre`), OpenFreeMap tiles, Geoapify geocoding
 - Zod
 - Vitest, Playwright, pgTAP
 - pnpm
@@ -68,7 +68,7 @@ src/
 │   │   ├── server.ts           # Request-scoped server client
 │   │   ├── proxy.ts            # Session-refresh helper
 │   │   └── database.types.ts   # Generated database types
-│   ├── maptiler/               # Geocoding integration, style URLs, config
+│   ├── maps/                   # Basemap style URL, geocoding integration
 │   ├── env.ts                  # Environment validation
 │   └── utils.ts                # Small shared utilities
 │

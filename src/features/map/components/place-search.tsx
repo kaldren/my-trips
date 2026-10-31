@@ -12,7 +12,7 @@ import {
   ComboboxList,
 } from "@/components/ui/combobox";
 import { Label } from "@/components/ui/label";
-import { searchPlaces, type Place } from "@/lib/maptiler/geocoding";
+import { searchPlaces, type Place } from "@/lib/maps/geocoding";
 
 const DEBOUNCE_MS = 250;
 
@@ -139,6 +139,18 @@ export function PlaceSearch({
               </ComboboxItem>
             )}
           </ComboboxList>
+          {/* Required by Geoapify's free plan. */}
+          <p className="border-t-2 border-border px-2.5 py-2 text-sm">
+            Search by{" "}
+            <a
+              href="https://www.geoapify.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-sm font-bold underline decoration-2 underline-offset-2 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              Geoapify
+            </a>
+          </p>
         </ComboboxContent>
       </Combobox>
     </div>
