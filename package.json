@@ -20,6 +20,8 @@
     "wt:env": "node scripts/worktree.mjs env",
     "wt:oauth-urls": "node scripts/worktree.mjs oauth-urls",
     "wt:release": "node scripts/worktree.mjs release",
+    "wt:up": "node scripts/worktree.mjs up",
+    "wt:down": "node scripts/worktree.mjs down",
     "supabase": "node scripts/worktree.mjs supabase"
   },
   "dependencies": {
