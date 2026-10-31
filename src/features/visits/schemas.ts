@@ -9,6 +9,13 @@ export const visitInputSchema = z.object({
   lng: z.number().min(-180).max(180),
   lat: z.number().min(-90).max(90),
   providerId: z.string().max(200).optional(),
+  /** ISO 3166-1 alpha-2, from geocoding. Older places have none. */
+  countryCode: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{2}$/)
+    .nullish(),
 });
 
 export const visitsInputSchema = z

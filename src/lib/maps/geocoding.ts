@@ -12,6 +12,8 @@ export type Place = {
   lat: number;
   /** The provider's place id, kept for de-duplication and later lookups. */
   providerId: string;
+  /** ISO 3166-1 alpha-2 country code in upper case, e.g. "PT", when known. */
+  countryCode: string | null;
 };
 
 /** A Geoapify result in `format=json`. Fields vary by result type. */
@@ -22,10 +24,17 @@ type GeoapifyResult = {
   formatted?: unknown;
   lon?: unknown;
   lat?: unknown;
+  country_code?: unknown;
 };
 
 function nonEmptyString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
+const COUNTRY_CODE = /^[a-z]{2}$/i;
+
+function countryCode(value: unknown): string | null {
+  return typeof value === "string" && COUNTRY_CODE.test(value) ? value.toUpperCase() : null;
 }
 
 function isCoordinate(value: unknown): value is number {
@@ -45,7 +54,16 @@ export function toPlaces(response: unknown): Place[] {
     }
     const label = nonEmptyString(result.formatted) ?? name;
 
-    return [{ name, label, lng: result.lon, lat: result.lat, providerId }];
+    return [
+      {
+        name,
+        label,
+        lng: result.lon,
+        lat: result.lat,
+        providerId,
+        countryCode: countryCode(result.country_code),
+      },
+    ];
   });
 }
 

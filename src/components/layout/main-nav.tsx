@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Luggage, Map } from "lucide-react";
+import { LayoutDashboard, Luggage, Map, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
@@ -11,6 +11,7 @@ const links = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/trips", label: "Trips", icon: Luggage },
   { href: "/map", label: "Map", icon: Map },
+  { href: "/profile", label: "Profile", icon: UserRound },
 ] as const;
 
 type Variant = "bar" | "tabs";

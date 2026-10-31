@@ -24,6 +24,8 @@ export type TripSummary = {
 export type TripPhoto = { id: string; url: string; isCover: boolean };
 
 export type TripDetail = Omit<TripSummary, "placeNames"> & {
+  /** The user who owns the trip. */
+  ownerId: string;
   isOwner: boolean;
   /** When the owner archived the trip, or null. */
   archivedAt: string | null;
@@ -33,7 +35,7 @@ export type TripDetail = Omit<TripSummary, "placeNames"> & {
 export type EditableTripPhoto = TripPhoto & { path: string };
 
 /** A trip as its owner edits it, with the storage paths of its photos. */
-export type EditableTrip = Omit<TripDetail, "isOwner" | "coverUrl" | "photos"> & {
+export type EditableTrip = Omit<TripDetail, "ownerId" | "isOwner" | "coverUrl" | "photos"> & {
   /** Storage folder new photos are uploaded into. */
   photoFolder: string;
   photos: EditableTripPhoto[];
@@ -157,6 +159,7 @@ export async function getTrip(tripId: string): Promise<TripDetail | null> {
     endDate: trip.end_date,
     message: trip.message,
     visibility: trip.visibility,
+    ownerId: trip.user_id,
     isOwner: trip.user_id === user.id,
     archivedAt: trip.archived_at,
     coverUrl: signed.find((photo) => photo.isCover)?.url ?? null,

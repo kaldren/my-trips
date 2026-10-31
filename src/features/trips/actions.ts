@@ -20,6 +20,7 @@ import {
   tripPhotosInputSchema,
   type TripDetailsFieldErrors,
 } from "./schemas";
+import { removeTripPhotoFiles } from "./services";
 
 const TRIP_NOT_FOUND = "This trip no longer exists, or it isn't yours.";
 
@@ -248,20 +249,9 @@ export async function deleteTrip(tripId: string): Promise<TripMutationResult> {
   if (tripError) return failed;
   if (!trip) return { ok: false, error: TRIP_NOT_FOUND };
 
-  // Storage policies check the trip row, so clear its folder first. Listing
-  // the folder also catches uploads that never made it into the gallery.
-  const folder = tripPhotoFolder(user.id, trip.id);
-  const storage = supabase.storage.from(TRIP_PHOTOS_BUCKET);
-  const { data: files, error: listError } = await storage.list(folder, {
-    limit: 1000,
-  });
-  if (listError) return failed;
-  if (files.length > 0) {
-    const { error: removeError } = await storage.remove(
-      files.map((file) => `${folder}/${file.name}`),
-    );
-    if (removeError) return failed;
-  }
+  // Storage policies check the trip row, so clear its folder first.
+  const removed = await removeTripPhotoFiles(supabase, user.id, trip.id);
+  if (!removed.ok) return failed;
 
   // Places and photo rows cascade.
   const { error: deleteError } = await supabase
