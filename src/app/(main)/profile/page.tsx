@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { DeleteAccountSection } from "@/features/profile/components/delete-account-section";
 import { ProfileForm } from "@/features/profile/components/profile-form";
+import { profilePath } from "@/features/profile/format";
 import { getMyProfile } from "@/features/profile/queries";
 import { requireUser } from "@/lib/auth/require-user";
 
@@ -24,7 +25,7 @@ export default async function ProfilePage() {
         description="Tell other travellers who you are. Everyone signed in to My Trips can see your profile."
         actions={
           <Link
-            href={`/users/${user.id}`}
+            href={profilePath(profile)}
             className={buttonVariants({ variant: "outline", size: "sm" })}
           >
             <EyeIcon aria-hidden data-icon="inline-start" />

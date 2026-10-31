@@ -40,6 +40,9 @@ export function ProfileView({
               {isOwn ? "Your profile" : "Traveller"}
             </p>
             <h1 className="text-4xl font-black break-words sm:text-5xl">{name}</h1>
+            {profile.username ? (
+              <p className="text-lg font-bold">@{profile.username}</p>
+            ) : null}
             {hasDetails ? (
               <p className="flex flex-wrap items-center gap-x-5 gap-y-1 text-base font-bold">
                 {profile.location ? (

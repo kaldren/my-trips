@@ -1,8 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
+  // Profiles live at /<username> (or /<user id>); old /users/... links move there.
+  async redirects() {
+    return [{ source: "/users/:handle", destination: "/:handle", permanent: true }];
+  },
   partialPrefetching: true,
   turbopack: {
     rules: {

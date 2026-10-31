@@ -13,7 +13,7 @@ import { notFound } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { IconBadge } from "@/components/ui/icon-badge";
-import { profileName } from "@/features/profile/format";
+import { profileName, profilePath } from "@/features/profile/format";
 import { getProfile } from "@/features/profile/queries";
 import { TripsMapLazy } from "@/features/map/components/trips-map-lazy";
 import type { MapPoint } from "@/features/map/utils";
@@ -98,7 +98,7 @@ export default async function TripPage({
           </div>
           {owner ? (
             <Link
-              href={`/users/${owner.id}`}
+              href={profilePath(owner)}
               className="inline-flex items-center gap-2 self-start rounded-xl text-base font-bold underline decoration-2 underline-offset-4 outline-none hover:decoration-[3px] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               <UserRoundIcon aria-hidden className="size-5 stroke-[2.5]" />

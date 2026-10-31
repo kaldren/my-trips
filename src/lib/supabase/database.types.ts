@@ -25,14 +25,14 @@ export type Database = {
           Tables: {
             "profiles": {
                   Row: {
-                    "age": number | null,"bio": string | null,"created_at": string,"display_name": string | null,"id": string,"location": string | null,"updated_at": string
+                    "age": number | null,"bio": string | null,"created_at": string,"display_name": string | null,"id": string,"is_official": boolean,"location": string | null,"updated_at": string,"username": string | null,"username_key": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "age"?: number | null,"bio"?: string | null,"created_at"?: string,"display_name"?: string | null,"id"?: string,"location"?: string | null,"updated_at"?: string
+                    "age"?: number | null,"bio"?: string | null,"created_at"?: string,"display_name"?: string | null,"id"?: string,"is_official"?: boolean,"location"?: string | null,"updated_at"?: string,"username"?: string | null,"username_key"?: never
                   }
                   Update: {
-                    "age"?: number | null,"bio"?: string | null,"created_at"?: string,"display_name"?: string | null,"id"?: string,"location"?: string | null,"updated_at"?: string
+                    "age"?: number | null,"bio"?: string | null,"created_at"?: string,"display_name"?: string | null,"id"?: string,"is_official"?: boolean,"location"?: string | null,"updated_at"?: string,"username"?: string | null,"username_key"?: never
                   }
                   Relationships: [
                     
@@ -102,6 +102,9 @@ isOneToOne: false
                            },
 "delete_account":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"is_reserved_username":
+{ Args: { "username": string }; Returns: boolean
                            },
 "profile_name_from_metadata":
 { Args: { "metadata": Json }; Returns: string
