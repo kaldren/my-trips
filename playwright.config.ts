@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const port = 3100;
+// `pnpm test:e2e` sets a per-worktree port (see scripts/worktree.mjs).
+const port = Number(process.env.PLAYWRIGHT_PORT ?? 3100);
 const baseURL = `http://localhost:${port}`;
 
 export default defineConfig({
@@ -15,7 +16,7 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `pnpm dev --port ${port}`,
+    command: `pnpm exec next dev --port ${port}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
   },
