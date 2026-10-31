@@ -2,6 +2,7 @@
 
 import "maplibre-gl/dist/maplibre-gl.css";
 
+import { setWorkerUrl } from "maplibre-gl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Map, {
   Layer,
@@ -24,6 +25,13 @@ export type TripsMapProps = {
   label: string;
   className?: string;
 };
+
+// MapLibre looks for its worker next to its own module file, which no longer
+// exists once the bundler moves MapLibre into a chunk. Point it at the worker
+// file the bundler emits instead, or no tiles load and only markers show.
+setWorkerUrl(
+  new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).href,
+);
 
 const FIT_OPTIONS = { padding: 56, maxZoom: 9 } as const;
 const WORLD_VIEW = { longitude: 10, latitude: 25, zoom: 0.8 } as const;
