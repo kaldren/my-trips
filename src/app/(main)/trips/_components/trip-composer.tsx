@@ -16,11 +16,12 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { PlaceSearch } from "@/features/map/components/place-search";
 import { TripsMapLazy } from "@/features/map/components/trips-map-lazy";
 import type { MapPoint } from "@/features/map/utils";
-import { attachTripPhotos, createTrip } from "@/features/trips/actions";
 import {
-  PhotoPicker,
-  type PickedPhoto,
-} from "@/features/trips/components/photo-picker";
+  attachTripPhotos,
+  createTrip,
+  updateTrip,
+} from "@/features/trips/actions";
+import { PhotoPicker } from "@/features/trips/components/photo-picker";
 import {
   TripDatesFields,
   TripMessageField,
@@ -35,50 +36,94 @@ import {
   buildTripPhotoPath,
 } from "@/features/trips/photo-paths";
 import {
-  createTripSchema,
-  type CreateTripFieldErrors,
+  tripDetailsSchema,
+  type TripDetailsFieldErrors,
   type TripVisibility,
 } from "@/features/trips/schemas";
-import { addVisits } from "@/features/visits/actions";
+import { addVisits, replaceVisits } from "@/features/visits/actions";
 import { MAX_VISITS } from "@/features/visits/schemas";
 import type { Place } from "@/lib/maptiler/geocoding";
 import { createClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/utils";
+
+type NewPhoto = { kind: "new"; id: string; file: File; previewUrl: string };
+type SavedPhoto = { kind: "saved"; id: string; path: string; previewUrl: string };
+type ComposerPhoto = NewPhoto | SavedPhoto;
+
+/** An existing trip to edit. Without one, the composer creates a trip. */
+export type TripComposerTrip = {
+  id: string;
+  /** Storage folder new photos are uploaded into. */
+  photoFolder: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  message: string;
+  visibility: TripVisibility;
+  places: Place[];
+  photos: { id: string; path: string; url: string; isCover: boolean }[];
+};
 
 /**
- * What has been saved so far. A retry resumes from here, so it never
- * creates a second trip or re-uploads a photo.
+ * What a new trip has saved so far. A retry resumes from here, so it never
+ * creates a second trip or attaches photos twice.
  */
-type SaveProgress = {
+type NewTripProgress = {
   tripId: string;
   photoFolder: string;
   visitsSaved: boolean;
-  /** Photo id → storage path, for photos already uploaded. */
-  uploaded: Map<string, string>;
+  photosSaved: boolean;
 };
 
-export function NewTripComposer() {
+type TripDetailsInput = {
+  title: string;
+  startDate: string;
+  endDate: string;
+  message: string;
+  visibility: TripVisibility;
+};
+
+export function TripComposer({ trip }: { trip?: TripComposerTrip }) {
   const router = useRouter();
   const container = useRef<HTMLDivElement>(null);
+  const isEditing = trip !== undefined;
 
-  const [title, setTitle] = useState("");
-  const [dates, setDates] = useState({ startDate: "", endDate: "" });
-  const [message, setMessage] = useState("");
-  const [visibility, setVisibility] = useState<TripVisibility>("public");
-  const [places, setPlaces] = useState<Place[]>([]);
-  const [photos, setPhotos] = useState<PickedPhoto[]>([]);
-  const [chosenCoverId, setChosenCoverId] = useState<string | null>(null);
+  const [title, setTitle] = useState(trip?.title ?? "");
+  const [dates, setDates] = useState({
+    startDate: trip?.startDate ?? "",
+    endDate: trip?.endDate ?? "",
+  });
+  const [message, setMessage] = useState(trip?.message ?? "");
+  const [visibility, setVisibility] = useState<TripVisibility>(
+    trip?.visibility ?? "public",
+  );
+  const [places, setPlaces] = useState<Place[]>(trip?.places ?? []);
+  const [placesChanged, setPlacesChanged] = useState(false);
+  const [photos, setPhotos] = useState<ComposerPhoto[]>(
+    () =>
+      trip?.photos.map((photo) => ({
+        kind: "saved",
+        id: photo.id,
+        path: photo.path,
+        previewUrl: photo.url,
+      })) ?? [],
+  );
+  const [chosenCoverId, setChosenCoverId] = useState<string | null>(
+    trip?.photos.find((photo) => photo.isCover)?.id ?? null,
+  );
 
-  const [fieldErrors, setFieldErrors] = useState<CreateTripFieldErrors>({});
+  const [fieldErrors, setFieldErrors] = useState<TripDetailsFieldErrors>({});
   const [placeNotice, setPlaceNotice] = useState<string | null>(null);
   const [photoProblems, setPhotoProblems] = useState<string[]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const progress = useRef<SaveProgress | null>(null);
+  const progress = useRef<NewTripProgress | null>(null);
+  /** Photo id → storage path, for new photos already uploaded. */
+  const uploaded = useRef(new Map<string, string>());
   const [savedTripId, setSavedTripId] = useState<string | null>(null);
   const [visitsSaved, setVisitsSaved] = useState(false);
+  const [photosSaved, setPhotosSaved] = useState(false);
 
   const coverId =
     photos.find((photo) => photo.id === chosenCoverId)?.id ?? photos[0]?.id ?? null;
@@ -101,7 +146,10 @@ export function NewTripComposer() {
     photosRef.current = photos;
   }, [photos]);
   useEffect(
-    () => () => photosRef.current.forEach((p) => URL.revokeObjectURL(p.previewUrl)),
+    () => () =>
+      photosRef.current.forEach((p) => {
+        if (p.kind === "new") URL.revokeObjectURL(p.previewUrl);
+      }),
     [],
   );
 
@@ -118,6 +166,7 @@ export function NewTripComposer() {
       return;
     }
     setPlaces([...places, place]);
+    setPlacesChanged(true);
   }
 
   function movePlace(index: number, offset: -1 | 1) {
@@ -126,11 +175,13 @@ export function NewTripComposer() {
     const next = [...places];
     [next[index], next[target]] = [next[target]!, next[index]!];
     setPlaces(next);
+    setPlacesChanged(true);
   }
 
   function removePlace(index: number) {
     setPlaceNotice(null);
     setPlaces(places.filter((_, i) => i !== index));
+    setPlacesChanged(true);
   }
 
   // ---- Photos ---------------------------------------------------------------
@@ -142,6 +193,7 @@ export function NewTripComposer() {
     setPhotos([
       ...photos,
       ...accepted.map((file) => ({
+        kind: "new" as const,
         id: crypto.randomUUID(),
         file,
         previewUrl: URL.createObjectURL(file),
@@ -151,7 +203,7 @@ export function NewTripComposer() {
 
   function removePhoto(id: string) {
     const photo = photos.find((p) => p.id === id);
-    if (photo) URL.revokeObjectURL(photo.previewUrl);
+    if (photo?.kind === "new") URL.revokeObjectURL(photo.previewUrl);
     setPhotos(photos.filter((p) => p.id !== id));
     setPhotoProblems([]);
   }
@@ -166,12 +218,158 @@ export function NewTripComposer() {
     });
   }
 
+  /** Where a photo lives in Storage, once it is there. */
+  function photoPath(photo: ComposerPhoto): string | undefined {
+    return photo.kind === "saved" ? photo.path : uploaded.current.get(photo.id);
+  }
+
+  /**
+   * Resizes new photos in the browser and uploads them straight to Storage.
+   * Returns how many are still not uploaded.
+   */
+  async function uploadNewPhotos(folder: string): Promise<number> {
+    const newPhotos = photos.filter((p): p is NewPhoto => p.kind === "new");
+    const pending = newPhotos.filter((p) => !uploaded.current.has(p.id));
+    if (pending.length === 0) return 0;
+
+    const supabase = createClient();
+    let done = newPhotos.length - pending.length;
+    setStatus(`Uploading photos ${done}/${newPhotos.length}…`);
+
+    await Promise.all(
+      pending.map(async (photo) => {
+        try {
+          const { blob, extension } = await prepareImageForUpload(photo.file);
+          const path = buildTripPhotoPath(folder, crypto.randomUUID(), extension);
+          const { error } = await supabase.storage
+            .from(TRIP_PHOTOS_BUCKET)
+            .upload(path, blob, { contentType: blob.type, upsert: false });
+          if (error) throw error;
+          uploaded.current.set(photo.id, path);
+        } catch {
+          // Counted below from what is still missing.
+        } finally {
+          setStatus(`Uploading photos ${++done}/${newPhotos.length}…`);
+        }
+      }),
+    );
+
+    return pending.filter((p) => !uploaded.current.has(p.id)).length;
+  }
+
+  function photoList() {
+    return photos.map((photo) => ({
+      path: photoPath(photo)!,
+      isCover: photo.id === coverId,
+    }));
+  }
+
+  /** Creates the trip, then its places and photos. Returns its id when done. */
+  async function saveNewTrip(input: TripDetailsInput): Promise<string | null> {
+    // 1. The trip itself.
+    if (!progress.current) {
+      setStatus("Saving trip…");
+      const result = await createTrip(input);
+      if (!result.ok) {
+        setFieldErrors(result.fieldErrors ?? {});
+        setSaveError(result.error);
+        focusFirstInvalidField();
+        return null;
+      }
+      progress.current = {
+        tripId: result.tripId,
+        photoFolder: result.photoFolder,
+        visitsSaved: false,
+        photosSaved: false,
+      };
+      setSavedTripId(result.tripId);
+    }
+    const saved = progress.current;
+    const failures: string[] = [];
+
+    // 2. Places.
+    if (!saved.visitsSaved) {
+      setStatus("Saving places…");
+      const result = await addVisits(saved.tripId, places);
+      if (result.ok) {
+        saved.visitsSaved = true;
+        setVisitsSaved(true);
+      } else {
+        failures.push("the places");
+      }
+    }
+
+    // 3. Photos, recorded once all of them are in Storage.
+    if (!saved.photosSaved) {
+      const failedUploads = await uploadNewPhotos(saved.photoFolder);
+      if (failedUploads > 0) {
+        failures.push(failedUploads === 1 ? "1 photo" : `${failedUploads} photos`);
+      } else if (photos.length > 0) {
+        setStatus("Saving photos…");
+        const result = await attachTripPhotos(saved.tripId, photoList());
+        if (result.ok) {
+          saved.photosSaved = true;
+          setPhotosSaved(true);
+        } else {
+          failures.push("the photos");
+        }
+      }
+    }
+
+    if (failures.length > 0) {
+      setSaveError(
+        `Your trip is saved, but ${failures.join(" and ")} didn't save. Try again, or remove the photos that failed.`,
+      );
+      return null;
+    }
+    return saved.tripId;
+  }
+
+  /** Saves edits to an existing trip. Returns its id when done. */
+  async function saveChanges(
+    current: TripComposerTrip,
+    input: TripDetailsInput,
+  ): Promise<string | null> {
+    // 1. New photos go to Storage first, so the photo list can point at them.
+    const failedUploads = await uploadNewPhotos(current.photoFolder);
+    if (failedUploads > 0) {
+      setSaveError(
+        `${failedUploads === 1 ? "1 photo" : `${failedUploads} photos`} didn't upload, so nothing was saved yet. Try again, or remove the photos that failed.`,
+      );
+      return null;
+    }
+
+    // 2. Details and photos, together.
+    setStatus("Saving changes…");
+    const result = await updateTrip(current.id, input, photoList());
+    if (!result.ok) {
+      setFieldErrors(result.fieldErrors ?? {});
+      setSaveError(result.error);
+      focusFirstInvalidField();
+      return null;
+    }
+
+    // 3. Places, only when they changed.
+    if (placesChanged) {
+      setStatus("Saving places…");
+      const visitsResult = await replaceVisits(current.id, places);
+      if (!visitsResult.ok) {
+        setSaveError("Your other changes are saved, but the places didn't save. Try again.");
+        return null;
+      }
+      setPlacesChanged(false);
+    }
+    return current.id;
+  }
+
   function save() {
     setSaveError(null);
     const input = { title, ...dates, message, visibility };
 
-    if (!progress.current) {
-      const parsed = createTripSchema.safeParse(input);
+    // A new trip's details are locked once it exists, so only check them
+    // before then.
+    if (isEditing || !progress.current) {
+      const parsed = tripDetailsSchema.safeParse(input);
       if (!parsed.success) {
         setFieldErrors(z.flattenError(parsed.error).fieldErrors);
         focusFirstInvalidField();
@@ -182,106 +380,24 @@ export function NewTripComposer() {
 
     startTransition(async () => {
       try {
-        // 1. The trip itself.
-        if (!progress.current) {
-          setStatus("Saving trip…");
-          const result = await createTrip(input);
-          if (!result.ok) {
-            setFieldErrors(result.fieldErrors ?? {});
-            setSaveError(result.error);
-            focusFirstInvalidField();
-            return;
-          }
-          progress.current = {
-            tripId: result.tripId,
-            photoFolder: result.photoFolder,
-            visitsSaved: false,
-            uploaded: new Map(),
-          };
-          setSavedTripId(result.tripId);
-        }
-        const saved = progress.current;
-        const failures: string[] = [];
+        const tripId = trip
+          ? await saveChanges(trip, input)
+          : await saveNewTrip(input);
+        if (!tripId) return;
 
-        // 2. Places.
-        if (!saved.visitsSaved) {
-          setStatus("Saving places…");
-          const result = await addVisits(saved.tripId, places);
-          if (result.ok) {
-            saved.visitsSaved = true;
-            setVisitsSaved(true);
-          } else {
-            failures.push("the places");
-          }
-        }
-
-        // 3. Photos: resize in the browser, upload straight to Storage.
-        const pending = photos.filter((photo) => !saved.uploaded.has(photo.id));
-        if (pending.length > 0) {
-          const supabase = createClient();
-          let done = photos.length - pending.length;
-          setStatus(`Uploading photos ${done}/${photos.length}…`);
-
-          await Promise.all(
-            pending.map(async (photo) => {
-              try {
-                const { blob, extension } = await prepareImageForUpload(photo.file);
-                const path = buildTripPhotoPath(
-                  saved.photoFolder,
-                  crypto.randomUUID(),
-                  extension,
-                );
-                const { error } = await supabase.storage
-                  .from(TRIP_PHOTOS_BUCKET)
-                  .upload(path, blob, { contentType: blob.type, upsert: false });
-                if (error) throw error;
-                saved.uploaded.set(photo.id, path);
-              } catch {
-                // Counted below from what is still missing.
-              } finally {
-                setStatus(`Uploading photos ${++done}/${photos.length}…`);
-              }
-            }),
-          );
-        }
-
-        const failedUploads = photos.filter((p) => !saved.uploaded.has(p.id)).length;
-        if (failedUploads > 0) {
-          failures.push(
-            failedUploads === 1 ? "1 photo" : `${failedUploads} photos`,
-          );
-        } else if (photos.length > 0) {
-          // 4. Record the uploaded photos once all of them are in Storage.
-          setStatus("Saving photos…");
-          const result = await attachTripPhotos(
-            saved.tripId,
-            photos.map((photo) => ({
-              path: saved.uploaded.get(photo.id)!,
-              isCover: photo.id === coverId,
-            })),
-          );
-          if (!result.ok) failures.push("the photos");
-        }
-
-        if (failures.length > 0) {
-          setSaveError(
-            `Your trip is saved, but ${failures.join(" and ")} didn't save. Try again, or remove the photos that failed.`,
-          );
-          return;
-        }
-
-        setStatus("Trip saved!");
-        router.push(`/trips/${saved.tripId}`);
+        setStatus(isEditing ? "Changes saved!" : "Trip saved!");
+        router.push(`/trips/${tripId}`);
       } catch {
         setSaveError("Something went wrong. Check your connection and try again.");
       } finally {
-        setStatus((current) => (current === "Trip saved!" ? current : null));
+        setStatus((current) => (current?.endsWith("saved!") ? current : null));
       }
     });
   }
 
-  const detailsLocked = isPending || savedTripId !== null;
-  const placesLocked = isPending || visitsSaved;
+  const detailsLocked = isPending || (!isEditing && savedTripId !== null);
+  const placesLocked = isPending || (!isEditing && visitsSaved);
+  const photosLocked = isPending || (!isEditing && photosSaved);
 
   return (
     <div
@@ -387,7 +503,7 @@ export function NewTripComposer() {
           onRemove={removePhoto}
           onSetCover={setChosenCoverId}
           problems={photoProblems}
-          disabled={isPending}
+          disabled={photosLocked}
         />
 
         <TripMessageField
@@ -429,29 +545,30 @@ export function NewTripComposer() {
           </p>
         ) : null}
         <div className="flex flex-wrap items-center gap-3">
-          <Button
-            type="button"
-            size="lg"
-            onClick={save}
-            disabled={isPending}
-            className="h-11 px-5 text-base"
-          >
+          <Button type="button" size="lg" onClick={save} disabled={isPending}>
             {isPending ? (
               <LoaderCircleIcon aria-hidden className="animate-spin" />
             ) : null}
-            {savedTripId ? "Try again" : "Save trip"}
+            {isEditing ? "Save changes" : savedTripId ? "Try again" : "Save trip"}
           </Button>
-          {savedTripId && !isPending ? (
+          {trip ? (
+            <Link
+              href={`/trips/${trip.id}`}
+              className={buttonVariants({ variant: "ghost", size: "lg" })}
+            >
+              Cancel
+            </Link>
+          ) : savedTripId && !isPending ? (
             <Link
               href={`/trips/${savedTripId}`}
-              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-11 px-4")}
+              className={buttonVariants({ variant: "outline", size: "lg" })}
             >
               Skip and view trip
             </Link>
           ) : (
             <Link
               href="/trips"
-              className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "h-11 px-4")}
+              className={buttonVariants({ variant: "ghost", size: "lg" })}
             >
               Cancel
             </Link>

@@ -10,8 +10,7 @@ import { ACCEPTED_IMAGE_TYPES, MAX_PHOTOS } from "../schemas";
 
 export type PickedPhoto = {
   id: string;
-  file: File;
-  /** Object URL for the thumbnail; the owner revokes it on removal. */
+  /** Thumbnail URL: an object URL for a new file, or a signed URL. */
   previewUrl: string;
 };
 

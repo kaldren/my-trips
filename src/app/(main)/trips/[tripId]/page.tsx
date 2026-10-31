@@ -1,14 +1,22 @@
-import { ArrowLeftIcon, CalendarDaysIcon, MapPinIcon, MapPinnedIcon } from "lucide-react";
+import {
+  ArchiveIcon,
+  ArrowLeftIcon,
+  CalendarDaysIcon,
+  MapPinIcon,
+  MapPinnedIcon,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { TripsMapLazy } from "@/features/map/components/trips-map-lazy";
 import type { MapPoint } from "@/features/map/utils";
 import { formatPlaceCount, formatTripDates } from "@/features/trips/format";
 import { TripGallery } from "@/features/trips/components/trip-gallery";
+import { TripOwnerActions } from "@/features/trips/components/trip-owner-actions";
 import { TripVisibilityBadge } from "@/features/trips/components/trip-visibility-badge";
 import { getTrip } from "@/features/trips/queries";
 import { getTripVisits } from "@/features/visits/queries";
@@ -30,17 +38,41 @@ export default async function TripPage({
     lat: visit.lat,
     label: visit.label,
   }));
+  const archived = trip.isOwner && trip.archivedAt !== null;
 
   return (
     <article className="mx-auto flex w-full max-w-5xl flex-col gap-10">
       <div className="flex flex-col gap-6">
-        <Link
-          href="/trips"
-          className={buttonVariants({ variant: "ghost", size: "sm", className: "self-start" })}
-        >
-          <ArrowLeftIcon aria-hidden data-icon="inline-start" />
-          All trips
-        </Link>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <Link
+            href={archived ? "/trips/archived" : "/trips"}
+            className={buttonVariants({ variant: "ghost", size: "sm", className: "self-start" })}
+          >
+            <ArrowLeftIcon aria-hidden data-icon="inline-start" />
+            {archived ? "Archived trips" : "All trips"}
+          </Link>
+          {trip.isOwner ? (
+            <TripOwnerActions tripId={trip.id} title={trip.title} archived={archived} />
+          ) : null}
+        </div>
+
+        {archived ? (
+          <div className="flex items-start gap-4 rounded-3xl border-2 border-dashed border-foreground bg-muted p-5">
+            <IconBadge tone="plain" className="-rotate-2">
+              <ArchiveIcon aria-hidden />
+            </IconBadge>
+            <div className="flex flex-col gap-1">
+              <p className="text-base font-extrabold">This trip is archived</p>
+              <p className="text-base leading-relaxed">
+                It&apos;s hidden from your trips list
+                {trip.visibility === "public"
+                  ? ", but anyone with the link can still see it"
+                  : ""}
+                . Unarchive it to bring it back.
+              </p>
+            </div>
+          </div>
+        ) : null}
 
         <header className="flex flex-col gap-4">
           <p className="text-sm font-extrabold tracking-widest uppercase">Trip</p>

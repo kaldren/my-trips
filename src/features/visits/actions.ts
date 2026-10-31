@@ -62,3 +62,32 @@ export async function addVisits(
   revalidatePath("/trips", "layout");
   return { ok: true };
 }
+
+/**
+ * Replaces all places on a trip with `visits`, in the given order, in one
+ * transaction. The database function checks that the caller owns the trip.
+ */
+export async function replaceVisits(
+  tripId: string,
+  visits: unknown,
+): Promise<AddVisitsResult> {
+  await requireUser();
+
+  const parsedTripId = z.uuid().safeParse(tripId);
+  const parsed = visitsInputSchema.safeParse(visits);
+  if (!parsedTripId.success || !parsed.success) {
+    return { ok: false, error: "Some places are invalid." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("replace_trip_visits", {
+    p_trip_id: parsedTripId.data,
+    p_visits: parsed.data,
+  });
+  if (error) {
+    return { ok: false, error: "Could not save places." };
+  }
+
+  revalidatePath("/trips", "layout");
+  return { ok: true };
+}
