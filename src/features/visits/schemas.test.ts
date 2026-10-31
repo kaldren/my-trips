@@ -11,6 +11,12 @@ const lisbon = {
 };
 
 describe("visitInputSchema", () => {
+  it("normalises country codes and allows places without one", () => {
+    expect(visitInputSchema.parse({ ...lisbon, countryCode: " pt " }).countryCode).toBe("PT");
+    expect(visitInputSchema.parse({ ...lisbon, countryCode: null }).countryCode).toBeNull();
+    expect(visitInputSchema.safeParse({ ...lisbon, countryCode: "PRT" }).success).toBe(false);
+  });
+
   it("accepts a geocoded place", () => {
     expect(visitInputSchema.parse(lisbon)).toEqual(lisbon);
   });

@@ -17,6 +17,7 @@ describe("toPlaces", () => {
           address_line2: "Portugal",
           formatted: "Lisbon, Portugal",
           result_type: "city",
+          country_code: "pt",
           lon: -9.1393,
           lat: 38.7223,
         },
@@ -31,6 +32,7 @@ describe("toPlaces", () => {
         lng: -9.1393,
         lat: 38.7223,
         providerId: "51a4df1b4b1d4722c0596b3a1a0dd25c4340",
+        countryCode: "PT",
       },
     ]);
   });

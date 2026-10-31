@@ -41,12 +41,13 @@ async function UserMenu() {
   return (
     <div className="flex items-center gap-3">
       <span className="hidden text-sm font-bold lg:inline">{user.email}</span>
-      <span
-        aria-hidden="true"
-        className="inline-flex size-10 items-center justify-center rounded-full border-2 border-foreground bg-accent text-lg font-black"
+      <Link
+        href="/profile"
+        aria-label="Your profile"
+        className="inline-flex size-10 items-center justify-center rounded-full border-2 border-foreground bg-accent text-lg font-black transition-[translate,box-shadow] duration-150 ease-out outline-none hover:-translate-y-0.5 hover:shadow-pop-sm focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none motion-reduce:hover:translate-y-0"
       >
-        {initial}
-      </span>
+        <span aria-hidden="true">{initial}</span>
+      </Link>
       <SignOutButton />
     </div>
   );

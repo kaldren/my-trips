@@ -52,6 +52,7 @@ export async function addVisits(
       lng: visit.lng,
       lat: visit.lat,
       provider_id: visit.providerId ?? null,
+      country_code: visit.countryCode ?? null,
       position: start + index,
     })),
   );

@@ -4,6 +4,7 @@ import {
   CalendarDaysIcon,
   MapPinIcon,
   MapPinnedIcon,
+  UserRoundIcon,
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -12,6 +13,8 @@ import { notFound } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { IconBadge } from "@/components/ui/icon-badge";
+import { profileName } from "@/features/profile/format";
+import { getProfile } from "@/features/profile/queries";
 import { TripsMapLazy } from "@/features/map/components/trips-map-lazy";
 import type { MapPoint } from "@/features/map/utils";
 import { formatPlaceCount, formatTripDates } from "@/features/trips/format";
@@ -30,7 +33,10 @@ export default async function TripPage({
 
   const trip = await getTrip(tripId);
   if (!trip) notFound();
-  const visits = await getTripVisits(trip.id);
+  const [visits, owner] = await Promise.all([
+    getTripVisits(trip.id),
+    getProfile(trip.ownerId),
+  ]);
 
   const points: MapPoint[] = visits.map((visit) => ({
     id: visit.id,
@@ -90,6 +96,15 @@ export default async function TripPage({
             ) : null}
             <TripVisibilityBadge visibility={trip.visibility} />
           </div>
+          {owner ? (
+            <Link
+              href={`/users/${owner.id}`}
+              className="inline-flex items-center gap-2 self-start rounded-xl text-base font-bold underline decoration-2 underline-offset-4 outline-none hover:decoration-[3px] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              <UserRoundIcon aria-hidden className="size-5 stroke-[2.5]" />
+              {trip.isOwner ? "By you" : `By ${profileName(owner.displayName)}`}
+            </Link>
+          ) : null}
         </header>
       </div>
 

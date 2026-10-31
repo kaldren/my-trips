@@ -23,7 +23,21 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "trip_photos": {
+            "profiles": {
+                  Row: {
+                    "age": number | null,"bio": string | null,"created_at": string,"display_name": string | null,"id": string,"location": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "age"?: number | null,"bio"?: string | null,"created_at"?: string,"display_name"?: string | null,"id"?: string,"location"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "age"?: number | null,"bio"?: string | null,"created_at"?: string,"display_name"?: string | null,"id"?: string,"location"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"trip_photos": {
                   Row: {
                     "created_at": string,"id": string,"is_cover": boolean,"position": number,"storage_path": string,"trip_id": string,"user_id": string
                   }
@@ -59,14 +73,14 @@ isOneToOne: false
                   ]
                 },"visits": {
                   Row: {
-                    "created_at": string,"id": string,"label": string,"lat": number,"lng": number,"name": string,"position": number,"provider_id": string | null,"trip_id": string,"user_id": string
+                    "country_code": string | null,"created_at": string,"id": string,"label": string,"lat": number,"lng": number,"name": string,"position": number,"provider_id": string | null,"trip_id": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"label": string,"lat": number,"lng": number,"name": string,"position": number,"provider_id"?: string | null,"trip_id": string,"user_id"?: string
+                    "country_code"?: string | null,"created_at"?: string,"id"?: string,"label": string,"lat": number,"lng": number,"name": string,"position": number,"provider_id"?: string | null,"trip_id": string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"label"?: string,"lat"?: number,"lng"?: number,"name"?: string,"position"?: number,"provider_id"?: string | null,"trip_id"?: string,"user_id"?: string
+                    "country_code"?: string | null,"created_at"?: string,"id"?: string,"label"?: string,"lat"?: number,"lng"?: number,"name"?: string,"position"?: number,"provider_id"?: string | null,"trip_id"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -83,7 +97,16 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "replace_trip_visits":
+            "count_visited_countries":
+{ Args: { "p_user_id": string }; Returns: number
+                           },
+"delete_account":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"profile_name_from_metadata":
+{ Args: { "metadata": Json }; Returns: string
+                           },
+"replace_trip_visits":
 { Args: { "p_trip_id": string,"p_visits": Json }; Returns: undefined
                            },
 "update_trip":

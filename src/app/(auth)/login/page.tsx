@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Sign in" };
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string | string[] }>;
+  searchParams: Promise<{ error?: string | string[]; deleted?: string | string[] }>;
 }) {
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
@@ -37,7 +37,7 @@ export default function LoginPage({
             </p>
           </div>
           <Suspense>
-            <CallbackError searchParams={searchParams} />
+            <LoginNotice searchParams={searchParams} />
           </Suspense>
           <LoginForm />
         </div>
@@ -47,13 +47,24 @@ export default function LoginPage({
 }
 
 // /auth/callback redirects here with ?error=auth when the exchange fails
-// (for example, the user cancelled on Google's consent screen).
-async function CallbackError({
+// (for example, the user cancelled on Google's consent screen). Deleting an
+// account redirects here with ?deleted=1.
+async function LoginNotice({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string | string[] }>;
+  searchParams: Promise<{ error?: string | string[]; deleted?: string | string[] }>;
 }) {
-  const { error } = await searchParams;
+  const { error, deleted } = await searchParams;
+  if (!error && deleted) {
+    return (
+      <p
+        role="status"
+        className="rounded-2xl border-2 border-foreground bg-muted px-4 py-3 text-sm font-bold"
+      >
+        Your account and all its data were deleted.
+      </p>
+    );
+  }
   if (!error) return null;
 
   return (

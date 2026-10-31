@@ -37,6 +37,7 @@ export default async function EditTripPage({
       lat: visit.lat,
       // Older places may lack a provider id; the visit id keeps them unique.
       providerId: visit.providerId ?? `visit:${visit.id}`,
+      countryCode: visit.countryCode,
     })),
     photos: trip.photos,
   };
