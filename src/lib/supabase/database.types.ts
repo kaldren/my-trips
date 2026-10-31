@@ -45,14 +45,14 @@ isOneToOne: false
                   ]
                 },"trips": {
                   Row: {
-                    "created_at": string,"end_date": string,"id": string,"message": string | null,"start_date": string,"title": string,"updated_at": string,"user_id": string,"visibility": Database["public"]['Enums']["trip_visibility"]
+                    "archived_at": string | null,"created_at": string,"end_date": string,"id": string,"message": string | null,"start_date": string,"title": string,"updated_at": string,"user_id": string,"visibility": Database["public"]['Enums']["trip_visibility"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"end_date": string,"id"?: string,"message"?: string | null,"start_date": string,"title": string,"updated_at"?: string,"user_id"?: string,"visibility"?: Database["public"]['Enums']["trip_visibility"]
+                    "archived_at"?: string | null,"created_at"?: string,"end_date": string,"id"?: string,"message"?: string | null,"start_date": string,"title": string,"updated_at"?: string,"user_id"?: string,"visibility"?: Database["public"]['Enums']["trip_visibility"]
                   }
                   Update: {
-                    "created_at"?: string,"end_date"?: string,"id"?: string,"message"?: string | null,"start_date"?: string,"title"?: string,"updated_at"?: string,"user_id"?: string,"visibility"?: Database["public"]['Enums']["trip_visibility"]
+                    "archived_at"?: string | null,"created_at"?: string,"end_date"?: string,"id"?: string,"message"?: string | null,"start_date"?: string,"title"?: string,"updated_at"?: string,"user_id"?: string,"visibility"?: Database["public"]['Enums']["trip_visibility"]
                   }
                   Relationships: [
                     
@@ -83,7 +83,12 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "replace_trip_visits":
+{ Args: { "p_trip_id": string,"p_visits": Json }; Returns: undefined
+                           },
+"update_trip":
+{ Args: { "p_end_date": string,"p_message": string,"p_photos": Json,"p_start_date": string,"p_title": string,"p_trip_id": string,"p_visibility": Database["public"]['Enums']["trip_visibility"] }; Returns: string[]
+                           }
           }
           Enums: {
             "trip_visibility": "public"|"private"

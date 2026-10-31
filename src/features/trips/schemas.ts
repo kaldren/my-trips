@@ -14,7 +14,7 @@ export const MAX_SOURCE_IMAGE_BYTES = 25 * 1024 * 1024;
 
 const isoDate = z.iso.date({ error: "Pick a date." });
 
-export const createTripSchema = z
+export const tripDetailsSchema = z
   .object({
     title: z
       .string()
@@ -36,18 +36,41 @@ export const createTripSchema = z
     message: "The trip can't end before it starts.",
   });
 
-export type CreateTripInput = z.input<typeof createTripSchema>;
-export type CreateTripFieldErrors = Partial<
-  Record<keyof CreateTripInput, string[]>
+export type TripDetailsInput = z.input<typeof tripDetailsSchema>;
+export type TripDetailsFieldErrors = Partial<
+  Record<keyof TripDetailsInput, string[]>
 >;
 
+export const tripIdSchema = z.uuid();
+
+export const archiveTripSchema = z.object({
+  tripId: tripIdSchema,
+  archived: z.boolean(),
+});
+
+const tripPhotoInputSchema = z.object({
+  path: z.string().min(1).max(300),
+  isCover: z.boolean(),
+});
+
+/**
+ * The complete photo list after an edit, in display order. Unlike adding
+ * photos, an edit may leave a trip with none; otherwise one is the cover.
+ */
+export const editTripPhotosSchema = z
+  .array(tripPhotoInputSchema)
+  .max(MAX_PHOTOS, `Add up to ${MAX_PHOTOS} photos.`)
+  .refine((photos) => new Set(photos.map((p) => p.path)).size === photos.length, {
+    message: "A photo is listed twice.",
+  })
+  .refine(
+    (photos) =>
+      photos.length === 0 || photos.filter((photo) => photo.isCover).length === 1,
+    { message: "Choose exactly one cover photo." },
+  );
+
 export const tripPhotosInputSchema = z
-  .array(
-    z.object({
-      path: z.string().min(1).max(300),
-      isCover: z.boolean(),
-    }),
-  )
+  .array(tripPhotoInputSchema)
   .min(1)
   .max(MAX_PHOTOS, `Add up to ${MAX_PHOTOS} photos.`)
   .refine((photos) => photos.filter((photo) => photo.isCover).length === 1, {
