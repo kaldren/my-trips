@@ -16,7 +16,8 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('33333333-3333-3333-3333-333333333333', 'c@example.com', '{}');
 
 select results_eq(
-  $$ select id, display_name from public.profiles order by id $$,
+  $$ select id, display_name from public.profiles
+      where id in ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '33333333-3333-3333-3333-333333333333') order by id $$,
   $$ values ('11111111-1111-1111-1111-111111111111'::uuid, 'Ana Silva'),
             ('22222222-2222-2222-2222-222222222222'::uuid, 'Bo'),
             ('33333333-3333-3333-3333-333333333333'::uuid, null) $$,
@@ -153,7 +154,8 @@ select is(
   0, 'delete_account removes the caller''s trips, places and photo rows');
 
 select is(
-  (select count(*)::int from auth.users u join public.profiles p on p.id = u.id),
+  (select count(*)::int from auth.users u join public.profiles p on p.id = u.id
+    where u.id in ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '33333333-3333-3333-3333-333333333333')),
   2, 'delete_account leaves other users and their profiles alone');
 
 select pg_temp.act_as('22222222-2222-2222-2222-222222222222');
