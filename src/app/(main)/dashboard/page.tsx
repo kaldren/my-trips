@@ -1,4 +1,4 @@
-import { ArrowRight, Luggage, Map } from "lucide-react";
+import { ArrowRight, Luggage, Map, PlusIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -34,6 +34,12 @@ export default function DashboardPage() {
         eyebrow="Dashboard"
         title="Where to next?"
         description="Jump back into your trips or explore everything you've pinned so far."
+        actions={
+          <Link href="/trips/new" className={buttonVariants({ size: "lg" })}>
+            <PlusIcon aria-hidden data-icon="inline-start" />
+            New trip
+          </Link>
+        }
       />
 
       <div className="grid gap-6 sm:grid-cols-2">
