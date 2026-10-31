@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("landing page renders", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "My Trips" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Every trip, every place, all on one map." })).toBeVisible();
 });
 
 test("signed-out visitors are redirected to login", async ({ page }) => {

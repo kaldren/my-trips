@@ -16,12 +16,15 @@ export function LoginForm() {
 
   return (
     <form action={formAction} className="grid gap-4">
-      <Button type="submit" variant="outline" size="lg" disabled={pending}>
+      <Button type="submit" variant="outline" size="lg" className="w-full" disabled={pending}>
         <GoogleIcon />
         {pending ? "Redirecting…" : "Continue with Google"}
       </Button>
       {state.error && (
-        <p role="alert" className="text-sm text-destructive">
+        <p
+          role="alert"
+          className="rounded-2xl border-2 border-destructive bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive"
+        >
           {state.error}
         </p>
       )}
@@ -31,7 +34,7 @@ export function LoginForm() {
 
 function GoogleIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="size-4">
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="size-6">
       <path
         fill="#4285F4"
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"
