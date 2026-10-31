@@ -27,11 +27,16 @@
 //   e2e [args]         playwright test against this worktree's e2e port
 //   supabase [args]    supabase CLI scoped to this worktree's stack
 //   release            Delete this worktree's stack and data, and free its slot
+//   up                 Start the stack and dev server in the background
+//                      (Claude Code SessionStart hook; reads the hook JSON on stdin)
+//   down [--force]     Stop the dev server and the stack, keeping data, once no
+//                      other Claude session uses this worktree (SessionEnd hook)
 
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const PROJECT = "my-trips";
 const SLOT_COUNT = 10;
@@ -308,6 +313,184 @@ function release() {
   return 0;
 }
 
+// --- Claude Code session hooks -------------------------------------------
+//
+// `up` and `down` run as SessionStart / SessionEnd hooks, so they must return
+// quickly: each records the session, then hands the slow work (supabase
+// start/stop, next dev) to a detached copy of this script (`up-bg`, `down-bg`).
+// Their state lives in this worktree's own git dir, outside the working tree.
+
+const SCRIPT = fileURLToPath(import.meta.url);
+const statePath = (name) => path.join(gitDir, `${PROJECT}-${name}`);
+const LEASES = statePath("sessions.json");
+const DEV_PID = statePath("dev.pid");
+const UP_LOCK = statePath("up.lock");
+const LEASE_TTL_MS = 24 * 60 * 60 * 1000;
+
+// Hook input arrives as JSON on stdin; manual runs have none.
+function readHookInput() {
+  if (process.stdin.isTTY) return {};
+  try {
+    return JSON.parse(fs.readFileSync(0, "utf8") || "{}");
+  } catch {
+    return {};
+  }
+}
+
+// Session ids of Claude sessions using this worktree, mapped to when they
+// were last seen. Sessions that crash never fire SessionEnd, so old entries
+// expire after LEASE_TTL_MS.
+function updateLeases(fn) {
+  let leases = {};
+  try {
+    leases = JSON.parse(fs.readFileSync(LEASES, "utf8"));
+  } catch {}
+  const now = Date.now();
+  for (const [id, seen] of Object.entries(leases)) if (now - seen > LEASE_TTL_MS) delete leases[id];
+  fn(leases, now);
+  const tmp = `${LEASES}.${process.pid}`;
+  fs.writeFileSync(tmp, `${JSON.stringify(leases, null, 2)}\n`);
+  fs.renameSync(tmp, LEASES);
+  return leases;
+}
+
+function spawnDetached(command, logName) {
+  const log = fs.openSync(statePath(logName), "a");
+  const child = spawn(process.execPath, [SCRIPT, command], {
+    cwd: root,
+    detached: true,
+    stdio: ["ignore", log, log],
+  });
+  child.unref();
+}
+
+function up() {
+  const input = readHookInput();
+  if (process.env.MY_TRIPS_NO_AUTOSTART === "1") {
+    console.log("MY_TRIPS_NO_AUTOSTART=1: not starting this worktree's app.");
+    return 0;
+  }
+  let slot;
+  try {
+    slot = claimSlot().slot;
+  } catch (error) {
+    // Report rather than fail, so the session still starts.
+    console.log(`Could not start this worktree's app: ${error.message}`);
+    return 0;
+  }
+  updateLeases((leases, now) => {
+    leases[input.session_id ?? "manual"] = now;
+  });
+  spawnDetached("up-bg", "up.log");
+  const ports = portsFor(slot);
+  console.log(
+    [
+      `This worktree's app (slot ${slot}) is starting in the background.`,
+      `  App      http://localhost:${ports.next}`,
+      `  Studio   http://127.0.0.1:${ports.studio}`,
+      `  Mailpit  http://127.0.0.1:${ports.mail}`,
+      `  Log      ${statePath("up.log")} (dev server: ${statePath("dev.log")})`,
+      "Wait for the app URL to respond instead of starting a second server.",
+    ].join("\n"),
+  );
+  return 0;
+}
+
+async function upBackground() {
+  // Only one start at a time per worktree, e.g. two sessions opening together.
+  try {
+    fs.mkdirSync(UP_LOCK);
+  } catch (error) {
+    if (error.code !== "EEXIST") throw error;
+    const age = Date.now() - (fs.statSync(UP_LOCK, { throwIfNoEntry: false })?.mtimeMs ?? 0);
+    if (age < 10 * 60 * 1000) {
+      console.log("Another start is already in progress.");
+      return 0;
+    }
+  }
+  try {
+    console.log(`[${new Date().toISOString()}] Starting ${root}`);
+    if (!fs.existsSync(path.join(root, "node_modules"))) {
+      const status = run("pnpm", ["install"]);
+      if (status !== 0) return status;
+    }
+    if (capture("docker", ["info"]).status !== 0) {
+      console.error("Docker is not running. Start Docker, then run: pnpm wt:up");
+      return 1;
+    }
+    const entry = claimSlot();
+    const status = await setup(entry, []);
+    if (status !== 0) return status;
+
+    const port = portsFor(entry.slot).next;
+    if (await isListening(port)) {
+      console.log(`App already running on http://localhost:${port}`);
+      return 0;
+    }
+    // Own process group, so `down` can stop next dev and all its workers.
+    const log = fs.openSync(statePath("dev.log"), "w");
+    const dev = spawn(process.execPath, [SCRIPT, "dev"], {
+      cwd: root,
+      detached: true,
+      stdio: ["ignore", log, log],
+      env: { ...process.env, PATH: `${path.join(root, "node_modules", ".bin")}${path.delimiter}${process.env.PATH}` },
+    });
+    fs.writeFileSync(DEV_PID, String(dev.pid));
+    dev.unref();
+    for (let i = 0; i < 120 && !(await isListening(port)); i++) sleep(1000);
+    console.log(
+      (await isListening(port))
+        ? `App running on http://localhost:${port}`
+        : `App did not start listening on ${port}; see ${statePath("dev.log")}`,
+    );
+    return 0;
+  } finally {
+    fs.rmSync(UP_LOCK, { recursive: true, force: true });
+  }
+}
+
+function down() {
+  const input = readHookInput();
+  const force = args.includes("--force");
+  const leases = updateLeases((leases) => {
+    if (force) for (const id of Object.keys(leases)) delete leases[id];
+    else delete leases[input.session_id ?? "manual"];
+  });
+  // /clear ends this session and starts a new one in the same worktree.
+  if (input.reason === "clear") return 0;
+  const others = Object.keys(leases).length;
+  if (others) {
+    console.log(`Leaving the app running: ${others} other session(s) use this worktree. Use --force to stop anyway.`);
+    return 0;
+  }
+  spawnDetached("down-bg", "down.log");
+  console.log(`Stopping this worktree's app in the background (log: ${statePath("down.log")}).`);
+  return 0;
+}
+
+async function downBackground() {
+  console.log(`[${new Date().toISOString()}] Stopping ${root}`);
+  const { slot } = claimSlot();
+  const port = portsFor(slot).next;
+  const pids = new Set();
+  try {
+    pids.add(-Number(fs.readFileSync(DEV_PID, "utf8")));
+  } catch {}
+  // Also stop a dev server started some other way (e.g. `pnpm dev` by hand).
+  const listeners = capture("lsof", ["-ti", `tcp:${port}`, "-sTCP:LISTEN"]).stdout ?? "";
+  for (const pid of listeners.split(/\s+/).filter(Boolean)) pids.add(Number(pid));
+  for (const pid of pids) {
+    try {
+      process.kill(pid, "SIGTERM");
+      console.log(`Sent SIGTERM to ${pid < 0 ? `process group ${-pid}` : `pid ${pid}`}`);
+    } catch (error) {
+      if (error.code !== "ESRCH") throw error;
+    }
+  }
+  fs.rmSync(DEV_PID, { force: true });
+  return run("supabase", ["stop"], supabaseEnvFor(slot));
+}
+
 const [command, ...args] = process.argv.slice(2);
 const commands = {
   info: () => printInfo(claimSlot()),
@@ -325,6 +508,10 @@ const commands = {
       PLAYWRIGHT_PORT: String(portsFor(claimSlot().slot).e2e),
     }),
   release,
+  up,
+  "up-bg": upBackground,
+  down,
+  "down-bg": downBackground,
 };
 
 if (!commands[command]) {

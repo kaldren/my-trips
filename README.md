@@ -38,6 +38,15 @@ pnpm dev
 - Each stack runs about a dozen containers. Stop the ones you aren't using with `pnpm db:stop`, which keeps their data. Run `pnpm wt:release` to delete a worktree's stack and data and free its slot.
 - If all slots are taken, `pnpm db:start` lists which worktree holds each slot.
 
+### Automatic start and stop with Claude Code
+
+`.claude/settings.json` adds two hooks so stacks don't pile up:
+
+- **SessionStart** runs `pnpm wt:up`: it starts this worktree's Supabase stack and dev server in the background and returns at once. Output goes to `my-trips-up.log` and `my-trips-dev.log` in the worktree's git dir (`git rev-parse --git-dir`).
+- **SessionEnd** runs `pnpm wt:down`: it stops the dev server and runs `supabase stop`, keeping the data. It waits until the last Claude session in the worktree has ended, and does nothing on `/clear`.
+
+Run `pnpm wt:up` or `pnpm wt:down --force` by hand at any time. `--force` stops the app even if other sessions are recorded, for example after a session crashed. Set `MY_TRIPS_NO_AUTOSTART=1` to turn off the auto-start. `pnpm wt:release` is still how you delete a worktree's data and free its slot.
+
 ### Google sign-in
 
 Google redirects to the Supabase API port, which is consecutive across slots. Add these 10 URIs once under **Authorized redirect URIs** on the Google OAuth client (`pnpm wt:oauth-urls` prints them):
@@ -68,3 +77,4 @@ The app's own `/auth/callback` is allowed on any local port by `additional_redir
 | `pnpm wt:info` / `wt:env` | Show this worktree's slot and URLs / rewrite `.env.local` |
 | `pnpm wt:oauth-urls` | Print the Google OAuth redirect URIs for all slots |
 | `pnpm wt:release` | Delete this worktree's Supabase stack and data, and free its slot |
+| `pnpm wt:up` / `wt:down [--force]` | Start / stop this worktree's stack and dev server in the background (used by the Claude Code hooks) |
