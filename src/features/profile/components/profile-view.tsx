@@ -31,7 +31,7 @@ export function ProfileView({
         <div className="flex items-center gap-5">
           <span
             aria-hidden="true"
-            className="inline-flex size-20 shrink-0 -rotate-2 items-center justify-center rounded-full border-2 border-foreground bg-accent text-4xl font-black shadow-pop sm:size-24 sm:text-5xl"
+            className="inline-flex size-20 shrink-0 -rotate-2 items-center justify-center rounded-full border-2 border-foreground bg-accent text-4xl font-black text-accent-foreground shadow-pop sm:size-24 sm:text-5xl"
           >
             {profileInitial(profile.displayName)}
           </span>
@@ -80,7 +80,7 @@ export function ProfileView({
           </p>
         </Card>
 
-        <Card className="gap-4 bg-accent">
+        <Card className="gap-4 bg-accent text-accent-foreground">
           <div className="flex items-center justify-between gap-4">
             <CardTitle>Countries visited</CardTitle>
             <IconBadge tone="plain" className="rotate-3">

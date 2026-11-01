@@ -37,6 +37,9 @@ Additional tokens and utilities defined in `globals.css`:
 | `shadow-pop-sm` / `shadow-pop` / `shadow-pop-lg` | `0 2px` / `0 4px` / `0 6px` solid Ink, no blur | Tactile edge under buttons, cards, active nav, brand mark |
 | `bg-dots`                           | Ink dot grid at 12% opacity, 24px | Decorative "map paper" texture for heroes, empty states, illustration frames |
 | `font-sans`, `font-heading`         | Nunito (`--font-nunito`)       | All text                                                   |
+| `bg-overlay`                        | Ink at 40% (dark: 85%)         | Backdrop behind dialogs                                    |
+
+`bg-dots` is drawn in the current text color at 12%, so it shows Ink dots on white and green surfaces and White dots on Ink.
 
 ### Rules
 
@@ -47,7 +50,32 @@ Additional tokens and utilities defined in `globals.css`:
 - **Use opacity tints only for decoration.** You may use Ink at reduced opacity for borders, dividers, and subtle backgrounds. Do not use it for text.
 - **The two greens are not a pair.** `#58CC02` and `#89E219` have almost the same contrast (1.29:1), so they must not be the only thing that tells two states or series apart. Add a label, an icon, a pattern, or Ink.
 - **Destructive and error states** keep the existing shadcn `--destructive` red. It is the only color allowed outside the palette, and only for errors and destructive actions.
-- **Light mode only** until a dark palette is defined here.
+- **Both themes.** Every screen works in light and dark (see "Dark mode"). Use semantic tokens so the theme switches for free; reach for the `dark:` variant only when a role has no token.
+
+## Dark mode
+
+Dark mode uses the **same four colors**; it adds no hue. Ink becomes the surface, and White takes over everything Ink does in light mode: text, icons, 2px outlines, pop shadows, and the focus ring. The greens and the Ink text on them do not change.
+
+The `.dark` class on `<html>` switches the tokens. These are the overrides in `globals.css`; every other token keeps its light value:
+
+| shadcn variable                          | Dark value               |
+| ---------------------------------------- | ------------------------ |
+| `--background`, `--card`, `--popover`    | `#4B4B4B` (Ink)          |
+| `--foreground`, `--card-foreground`, `--popover-foreground`, `--muted-foreground` | `#FFFFFF` |
+| `--primary-foreground`, `--accent-foreground`, `--secondary-foreground` | `#4B4B4B` (unchanged) |
+| `--muted`                                | `#FFFFFF` at 8% opacity  |
+| `--border`, `--input`                    | `#FFFFFF` at 25% opacity |
+| `--ring`                                 | `#FFFFFF`                |
+| `--chart-3`                              | `#FFFFFF`                |
+| `--destructive`                          | `#FFA8A3` (4.73:1 on Ink) |
+
+How it is chosen: with no stored choice the theme follows the operating system (`prefers-color-scheme`). The `ThemeToggle` button (`layout/theme-toggle.tsx`) stores an explicit light or dark choice in `localStorage`. An inline script in the root layout (`lib/theme/theme.ts`) applies it before first paint, so no page flashes the wrong theme. Client code that needs the theme (for example, MapLibre paint colors) uses `useTheme()` from `lib/theme/use-theme.ts`. The map switches to OpenFreeMap's grayscale `dark` basemap.
+
+Rules for dark mode:
+
+- **Text on green is still Ink.** Every element with a green fill sets `text-primary-foreground` or `text-accent-foreground`. It does not inherit `text-foreground`, which is White in dark mode.
+- **Green is still never text.** Green on Ink is 4.18:1 (`#58CC02`) and 5.38:1 (`#89E219`). That passes for shapes, but keep the light-mode rule so one rule covers both themes.
+- **Outlines and shadows follow the text color.** Use `border-foreground` and `shadow-pop*`. Do not hardcode Ink for them.
 
 ## Typography
 
@@ -106,6 +134,7 @@ Shared building blocks live in `src/components/`. Reuse them instead of restylin
 
 - `layout/logo.tsx`: brand mark (a tilted green tile with a map pin) and wordmark.
 - `layout/page-header.tsx`: eyebrow, page title, description, and optional actions.
+- `layout/theme-toggle.tsx`: icon button that switches light and dark (`aria-pressed`). It sits in every page header.
 - `layout/main-nav.tsx`: header pills on desktop and a bottom tab bar on mobile. The active item has a light green fill plus an Ink outline and shadow, and `aria-current="page"`.
 - `ui/card.tsx`: sticker card. Pass `interactive` when the whole card is a link.
 - `ui/icon-badge.tsx`: outlined icon tile in `primary`, `accent`, or `plain` tone.
@@ -126,17 +155,21 @@ Page layout: content sits in `max-w-6xl` with `px-6`. Leave generous vertical rh
 | `#58CC02` on `#FFFFFF`   | 2.09:1   | Fail                | **Fail**                      |
 | `#FFFFFF` on `#58CC02`   | 2.09:1   | Fail                | Fail                          |
 | `#89E219` on `#FFFFFF`   | 1.62:1   | Fail                | Fail                          |
+| `#58CC02` on `#4B4B4B`   | 4.18:1   | Fail (never text)   | Pass                          |
+| `#89E219` on `#4B4B4B`   | 5.38:1   | Never text          | Pass                          |
+| `#FFA8A3` on `#4B4B4B`   | 4.73:1   | Pass                | Pass                          |
 
 What this means in practice:
 
 - **Text on `#58CC02` must be large:** at least 24px, or at least 18.66px (14pt) bold. For standard-size labels such as 14–16px button text, use `#89E219` as the background instead.
 - **Green shapes on white must have an outline.** Green controls, map markers, and route lines sit below 3:1 against white, so give them an Ink (`#4B4B4B`) outline or border, or a white halo when they sit on a map.
-- **Focus rings are Ink** (`--ring: #4B4B4B`), never green. Controls use a 3px Ink outline with an offset (`focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring`).
+- **Focus rings are Ink** (`--ring: #4B4B4B`; White in dark mode), never green. Controls use a 3px Ink outline with an offset (`focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring`).
 
 ## Checklist for new UI
 
 - [ ] Uses only semantic tokens; no hex values or default Tailwind colors
 - [ ] All text is `#4B4B4B` (or `#FFFFFF` on Ink)
+- [ ] Checked in dark mode; green fills set `text-primary-foreground` or `text-accent-foreground`
 - [ ] No white text on green; no green text on white
 - [ ] Text on `#58CC02` is large or bold-large; smaller labels use `#89E219`
 - [ ] Green shapes and markers on white or the map have an Ink outline or white halo

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { RouteIllustration } from "@/components/illustrations/route-illustration";
 import { Logo } from "@/components/layout/logo";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { LoginForm } from "@/features/auth/components/login-form";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -16,7 +17,7 @@ export default function LoginPage({
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
       {/* Brand panel. Only large, black-weight text sits on Green. */}
-      <aside className="relative hidden flex-col justify-center gap-12 overflow-hidden border-r-2 border-foreground bg-primary bg-dots p-12 lg:flex">
+      <aside className="relative hidden flex-col justify-center gap-12 overflow-hidden border-r-2 border-foreground bg-primary bg-dots p-12 text-primary-foreground lg:flex">
         <p className="max-w-md text-4xl leading-tight font-black">
           Pick up right where your last trip left off.
         </p>
@@ -27,9 +28,12 @@ export default function LoginPage({
 
       <main className="flex flex-col justify-center px-6 py-12 sm:px-12">
         <div className="mx-auto flex w-full max-w-sm flex-col gap-8">
-          <Link href="/" className="self-start rounded-xl">
-            <Logo />
-          </Link>
+          <div className="flex items-center justify-between gap-4">
+            <Link href="/" className="rounded-xl">
+              <Logo />
+            </Link>
+            <ThemeToggle />
+          </div>
           <div className="grid gap-3">
             <h1 className="text-4xl font-black">Sign in</h1>
             <p className="text-lg leading-relaxed">

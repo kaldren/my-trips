@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { RouteIllustration } from "@/components/illustrations/route-illustration";
 import { Logo } from "@/components/layout/logo";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { IconBadge } from "@/components/ui/icon-badge";
@@ -38,15 +39,18 @@ export default function LandingPage() {
         <Link href="/" className="rounded-xl">
           <Logo />
         </Link>
-        <Link href="/login" className={buttonVariants({ variant: "outline", size: "sm" })}>
-          Sign in
-        </Link>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Link href="/login" className={buttonVariants({ variant: "outline", size: "sm" })}>
+            Sign in
+          </Link>
+        </div>
       </header>
 
       <main className="flex-1">
         <section className="mx-auto grid w-full max-w-6xl items-center gap-12 px-6 pt-10 pb-20 lg:grid-cols-[1.1fr_1fr] lg:pt-16">
           <div className="flex flex-col items-start gap-7">
-            <span className="inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-accent px-4 py-1.5 text-sm font-extrabold">
+            <span className="inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-accent px-4 py-1.5 text-sm font-extrabold text-accent-foreground">
               Your travel journal
             </span>
             <h1 className="text-5xl leading-[1.05] font-black sm:text-6xl lg:text-7xl">
@@ -96,7 +100,7 @@ export default function LandingPage() {
         </section>
 
         <section className="mx-auto w-full max-w-6xl px-6 py-20">
-          <div className="flex flex-col items-start gap-6 rounded-[2.5rem] border-2 border-foreground bg-primary p-8 shadow-pop-lg sm:flex-row sm:items-center sm:justify-between sm:p-12">
+          <div className="flex flex-col items-start gap-6 rounded-[2.5rem] border-2 border-foreground bg-primary p-8 text-primary-foreground shadow-pop-lg sm:flex-row sm:items-center sm:justify-between sm:p-12">
             {/* Text on Green must be large: 30px+ black weight. */}
             <h2 className="max-w-lg text-3xl font-black sm:text-4xl">
               Ready to pin your next adventure?

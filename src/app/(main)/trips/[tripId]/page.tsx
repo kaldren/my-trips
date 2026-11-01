@@ -139,7 +139,7 @@ export default async function TripPage({
                 <li key={visit.id} className="flex items-start gap-3">
                   <span
                     aria-hidden
-                    className="flex size-8 shrink-0 items-center justify-center rounded-full border-2 border-foreground bg-accent text-sm font-black"
+                    className="flex size-8 shrink-0 items-center justify-center rounded-full border-2 border-foreground bg-accent text-sm font-black text-accent-foreground"
                   >
                     {index + 1}
                   </span>

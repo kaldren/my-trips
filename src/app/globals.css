@@ -27,6 +27,7 @@
     --color-chart-3: var(--chart-3);
     --color-chart-2: var(--chart-2);
     --color-chart-1: var(--chart-1);
+    --color-overlay: var(--overlay);
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
@@ -54,8 +55,10 @@
     --radius-4xl: calc(var(--radius) * 2.5);
 }
 
-/* Palette — see DESIGN.md. Light mode only. */
+/* Palette — see DESIGN.md. Light theme. */
 :root {
+    color-scheme: light;
+
     --ink: #4b4b4b;
     --green: #58cc02;
     --light-green: #89e219;
@@ -79,6 +82,7 @@
     --border: rgb(75 75 75 / 0.2);
     --input: rgb(75 75 75 / 0.2);
     --ring: var(--ink);
+    --overlay: rgb(75 75 75 / 0.4);
     --chart-1: var(--green);
     --chart-2: var(--light-green);
     --chart-3: var(--ink);
@@ -95,11 +99,43 @@
     --sidebar-ring: var(--ink);
 }
 
-/* Decorative map-paper dot grid (Ink at low opacity, never behind small text on its own). */
+/*
+ * Dark theme — see DESIGN.md "Dark mode". Same four colors: Ink becomes the
+ * surface, White the text, outlines, and pop shadows. Greens and the Ink text
+ * on them are unchanged. Set by the `.dark` class on <html> (lib/theme).
+ */
+.dark {
+    color-scheme: dark;
+
+    --background: var(--ink);
+    --foreground: var(--white);
+    --card: var(--ink);
+    --card-foreground: var(--white);
+    --popover: var(--ink);
+    --popover-foreground: var(--white);
+    --muted: rgb(255 255 255 / 0.08);
+    --muted-foreground: var(--white);
+    /* Lighter red so error text keeps 4.5:1 on Ink (4.73:1). */
+    --destructive: #ffa8a3;
+    --border: rgb(255 255 255 / 0.25);
+    --input: rgb(255 255 255 / 0.25);
+    --ring: var(--white);
+    --overlay: rgb(75 75 75 / 0.85);
+    --chart-3: var(--white);
+    --sidebar: var(--ink);
+    --sidebar-foreground: var(--white);
+    --sidebar-border: rgb(255 255 255 / 0.25);
+    --sidebar-ring: var(--white);
+}
+
+/*
+ * Decorative map-paper dot grid in the current text color at low opacity
+ * (Ink dots on light and green surfaces, White dots on Ink).
+ */
 @utility bg-dots {
     background-image: radial-gradient(
         circle at 1px 1px,
-        rgb(75 75 75 / 0.12) 1.5px,
+        color-mix(in srgb, currentColor 12%, transparent) 1.5px,
         transparent 0
     );
     background-size: 24px 24px;

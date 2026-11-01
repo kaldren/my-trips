@@ -2,7 +2,7 @@ import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
 
-// Tactile buttons: 2px Ink outline, solid Ink "pop" shadow, lift on hover,
+// Tactile buttons: 2px outline and solid "pop" shadow in the text color, lift on hover,
 // press down on click. See DESIGN.md "Buttons".
 const buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-2xl border-2 border-transparent bg-clip-padding font-extrabold whitespace-nowrap transition-[translate,box-shadow,background-color] duration-150 ease-out outline-none select-none focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive motion-reduce:transition-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
@@ -12,7 +12,7 @@ const buttonVariants = cva(
         default:
           "border-foreground bg-accent text-accent-foreground shadow-pop hover:-translate-y-0.5 hover:shadow-pop-lg active:translate-y-0.5 active:shadow-pop-sm motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0",
         outline:
-          "border-foreground bg-background text-foreground shadow-pop hover:-translate-y-0.5 hover:bg-accent hover:shadow-pop-lg active:translate-y-0.5 active:shadow-pop-sm aria-expanded:bg-accent motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0",
+          "border-foreground bg-background text-foreground shadow-pop hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground hover:shadow-pop-lg active:translate-y-0.5 active:shadow-pop-sm aria-expanded:bg-accent aria-expanded:text-accent-foreground motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0",
         secondary:
           "bg-muted text-foreground hover:bg-foreground/10 aria-expanded:bg-foreground/10",
         ghost:

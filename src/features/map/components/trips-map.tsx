@@ -3,7 +3,7 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { setWorkerUrl } from "maplibre-gl";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Map, {
   Layer,
   Marker,
@@ -12,7 +12,8 @@ import Map, {
   type MapRef,
 } from "react-map-gl/maplibre";
 
-import { mapStyleUrl } from "@/lib/maps/style";
+import { mapStyleUrls } from "@/lib/maps/style";
+import { useTheme } from "@/lib/theme/use-theme";
 import { cn } from "@/lib/utils";
 
 import { boundsForPoints, routeLine, type MapPoint } from "../utils";
@@ -36,7 +37,7 @@ setWorkerUrl(
 const FIT_OPTIONS = { padding: 56, maxZoom: 9 } as const;
 const WORLD_VIEW = { longitude: 10, latitude: 25, zoom: 0.8 } as const;
 
-/** MapLibre paint needs concrete colors, so read the palette tokens once. */
+/** MapLibre paint needs concrete colors, so read the palette tokens per theme. */
 function readPalette() {
   const style = getComputedStyle(document.documentElement);
   return {
@@ -56,7 +57,9 @@ export function TripsMap({
   className,
 }: TripsMapProps) {
   const mapRef = useRef<MapRef>(null);
-  const [palette] = useState(readPalette);
+  // The map only renders in the browser, so the theme is known here.
+  const theme = useTheme().theme ?? "light";
+  const palette = useMemo(readPalette, [theme]);
   const bounds = useMemo(() => boundsForPoints(points), [points]);
   const route = useMemo(
     () => (showRoute ? routeLine(points) : null),
@@ -76,7 +79,7 @@ export function TripsMap({
     >
       <Map
         ref={mapRef}
-        mapStyle={mapStyleUrl}
+        mapStyle={mapStyleUrls[theme]}
         initialViewState={
           bounds ? { bounds, fitBoundsOptions: FIT_OPTIONS } : WORLD_VIEW
         }
@@ -89,7 +92,7 @@ export function TripsMap({
 
         {route ? (
           <Source id="trip-route" type="geojson" data={route}>
-            {/* White casing keeps the green line visible on any basemap. */}
+            {/* Background-colored casing keeps the green line visible on any basemap. */}
             <Layer
               id="trip-route-casing"
               type="line"

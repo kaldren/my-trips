@@ -70,7 +70,7 @@ function NavLinks({
                     ? "h-11 px-4 text-base"
                     : "h-16 w-full flex-col justify-center gap-0.5 text-xs",
                   active
-                    ? "border-foreground bg-accent shadow-pop-sm"
+                    ? "border-foreground bg-accent text-accent-foreground shadow-pop-sm"
                     : "border-transparent hover:bg-muted",
                 )}
               >

@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import { Logo } from "@/components/layout/logo";
 import { MainNav } from "@/components/layout/main-nav";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { requireUser } from "@/lib/auth/require-user";
 
@@ -17,9 +18,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             </Link>
             <MainNav className="hidden md:block" />
           </div>
-          <Suspense>
-            <UserMenu />
-          </Suspense>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Suspense>
+              <UserMenu />
+            </Suspense>
+          </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 pt-10 pb-32 md:pb-16">
@@ -44,7 +48,7 @@ async function UserMenu() {
       <Link
         href="/profile"
         aria-label="Your profile"
-        className="inline-flex size-10 items-center justify-center rounded-full border-2 border-foreground bg-accent text-lg font-black transition-[translate,box-shadow] duration-150 ease-out outline-none hover:-translate-y-0.5 hover:shadow-pop-sm focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+        className="inline-flex size-10 items-center justify-center rounded-full border-2 border-foreground bg-accent text-lg font-black text-accent-foreground transition-[translate,box-shadow] duration-150 ease-out outline-none hover:-translate-y-0.5 hover:shadow-pop-sm focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none motion-reduce:hover:translate-y-0"
       >
         <span aria-hidden="true">{initial}</span>
       </Link>

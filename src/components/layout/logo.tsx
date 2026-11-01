@@ -9,7 +9,8 @@ export function Logo({ className }: { className?: string }) {
         aria-hidden="true"
         className="inline-flex size-10 -rotate-6 items-center justify-center rounded-xl border-2 border-foreground bg-primary shadow-pop-sm"
       >
-        <MapPin className="size-5 fill-background stroke-[2.5] text-foreground" />
+        {/* Ink pin with a White fill in both themes: it sits on Green. */}
+        <MapPin className="size-5 fill-background stroke-[2.5] text-primary-foreground dark:fill-foreground" />
       </span>
       <span className="text-xl font-black tracking-tight whitespace-nowrap">My Trips</span>
     </span>
