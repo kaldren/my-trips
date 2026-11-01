@@ -17,7 +17,7 @@ const links = [
 type Variant = "bar" | "tabs";
 
 // `bar` is the inline header nav (md and up); `tabs` is the mobile bottom bar.
-// Active links get an Ink outline and pop shadow, not just a green fill.
+// Active links get an Ink outline and pop shadow, not just a Lemon fill.
 // usePathname suspends on routes with unknown dynamic params, so the nav
 // prerenders without an active link and fills it in at request time.
 export function MainNav({
@@ -70,7 +70,7 @@ function NavLinks({
                     ? "h-11 px-4 text-base"
                     : "h-16 w-full flex-col justify-center gap-0.5 text-xs",
                   active
-                    ? "border-foreground bg-accent shadow-pop-sm"
+                    ? "border-foreground bg-primary shadow-pop-sm"
                     : "border-transparent hover:bg-muted",
                 )}
               >

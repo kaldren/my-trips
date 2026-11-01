@@ -23,7 +23,7 @@ const shortcuts = [
     icon: <Map />,
     title: "Your map",
     description: "See all the places you've visited as pins on one map.",
-    tone: "accent",
+    tone: "secondary",
   },
 ] as const;
 

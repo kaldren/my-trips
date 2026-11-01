@@ -31,6 +31,10 @@
     --color-input: var(--input);
     --color-border: var(--border);
     --color-destructive: var(--destructive);
+    --color-water-foreground: var(--water-foreground);
+    --color-water: var(--water);
+    --color-land-foreground: var(--land-foreground);
+    --color-land: var(--land);
     --color-accent-foreground: var(--accent-foreground);
     --color-accent: var(--accent);
     --color-muted-foreground: var(--muted-foreground);
@@ -56,42 +60,49 @@
 
 /* Palette — see DESIGN.md. Light mode only. */
 :root {
-    --ink: #4b4b4b;
-    --green: #58cc02;
-    --light-green: #89e219;
-    --white: #ffffff;
+    --lemon: #ffd23f;
+    --mint-lime: #7ccf8a;
+    --tangerine: #ff8a3d;
+    --lemon-sand: #fff3c4;
+    --sky-mint: #c4ecf2;
+    --cream: #fffdf5;
+    --ink: #1f2414;
 
-    --background: var(--white);
+    --background: var(--cream);
     --foreground: var(--ink);
-    --card: var(--white);
+    --card: var(--cream);
     --card-foreground: var(--ink);
-    --popover: var(--white);
+    --popover: var(--cream);
     --popover-foreground: var(--ink);
-    --primary: var(--green);
+    --primary: var(--lemon);
     --primary-foreground: var(--ink);
-    --secondary: var(--light-green);
+    --secondary: var(--mint-lime);
     --secondary-foreground: var(--ink);
-    --muted: rgb(75 75 75 / 0.05);
+    --muted: rgb(31 36 20 / 0.05);
     --muted-foreground: var(--ink);
-    --accent: var(--light-green);
+    --accent: var(--tangerine);
     --accent-foreground: var(--ink);
+    --land: var(--lemon-sand);
+    --land-foreground: var(--ink);
+    --water: var(--sky-mint);
+    --water-foreground: var(--ink);
     --destructive: oklch(0.577 0.245 27.325);
-    --border: rgb(75 75 75 / 0.2);
-    --input: rgb(75 75 75 / 0.2);
+    --border: rgb(31 36 20 / 0.2);
+    --input: rgb(31 36 20 / 0.2);
     --ring: var(--ink);
-    --chart-1: var(--green);
-    --chart-2: var(--light-green);
-    --chart-3: var(--ink);
-    --chart-4: var(--green);
-    --chart-5: var(--light-green);
+    --chart-1: var(--lemon);
+    --chart-2: var(--mint-lime);
+    --chart-3: var(--tangerine);
+    --chart-4: var(--sky-mint);
+    --chart-5: var(--ink);
     --radius: 0.75rem;
-    --sidebar: var(--white);
+    --sidebar: var(--cream);
     --sidebar-foreground: var(--ink);
-    --sidebar-primary: var(--green);
+    --sidebar-primary: var(--lemon);
     --sidebar-primary-foreground: var(--ink);
-    --sidebar-accent: var(--light-green);
+    --sidebar-accent: var(--tangerine);
     --sidebar-accent-foreground: var(--ink);
-    --sidebar-border: rgb(75 75 75 / 0.2);
+    --sidebar-border: rgb(31 36 20 / 0.2);
     --sidebar-ring: var(--ink);
 }
 
@@ -99,7 +110,7 @@
 @utility bg-dots {
     background-image: radial-gradient(
         circle at 1px 1px,
-        rgb(75 75 75 / 0.12) 1.5px,
+        rgb(31 36 20 / 0.12) 1.5px,
         transparent 0
     );
     background-size: 24px 24px;
@@ -122,6 +133,6 @@
         @apply font-heading tracking-tight text-balance;
     }
     ::selection {
-        @apply bg-accent text-accent-foreground;
+        @apply bg-primary text-primary-foreground;
     }
 }

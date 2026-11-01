@@ -12,7 +12,7 @@ import Map, {
   type MapRef,
 } from "react-map-gl/maplibre";
 
-import { mapStyleUrl } from "@/lib/maps/style";
+import { mapStyleUrl, tintBasemap } from "@/lib/maps/style";
 import { cn } from "@/lib/utils";
 
 import { boundsForPoints, routeLine, type MapPoint } from "../utils";
@@ -40,8 +40,10 @@ const WORLD_VIEW = { longitude: 10, latitude: 25, zoom: 0.8 } as const;
 function readPalette() {
   const style = getComputedStyle(document.documentElement);
   return {
-    primary: style.getPropertyValue("--primary").trim(),
+    pin: style.getPropertyValue("--accent").trim(),
     halo: style.getPropertyValue("--background").trim(),
+    land: style.getPropertyValue("--land").trim(),
+    water: style.getPropertyValue("--water").trim(),
   };
 }
 
@@ -77,6 +79,7 @@ export function TripsMap({
       <Map
         ref={mapRef}
         mapStyle={mapStyleUrl}
+        onLoad={(event) => tintBasemap(event.target, palette)}
         initialViewState={
           bounds ? { bounds, fitBoundsOptions: FIT_OPTIONS } : WORLD_VIEW
         }
@@ -89,7 +92,7 @@ export function TripsMap({
 
         {route ? (
           <Source id="trip-route" type="geojson" data={route}>
-            {/* White casing keeps the green line visible on any basemap. */}
+            {/* Cream casing keeps the Tangerine line visible on any basemap. */}
             <Layer
               id="trip-route-casing"
               type="line"
@@ -101,7 +104,7 @@ export function TripsMap({
               type="line"
               layout={{ "line-cap": "round", "line-join": "round" }}
               paint={{
-                "line-color": palette.primary,
+                "line-color": palette.pin,
                 "line-width": 3.5,
                 "line-dasharray": [2, 1.5],
               }}
@@ -116,10 +119,10 @@ export function TripsMap({
             latitude={point.lat}
             anchor="center"
           >
-            {/* Large bold numerals meet contrast on --primary (see DESIGN.md). */}
+            {/* Ink numerals on Tangerine, with a Cream halo (see DESIGN.md). */}
             <span
               title={point.label}
-              className="flex size-9 items-center justify-center rounded-full border-2 border-foreground bg-primary text-[19px] leading-none font-bold text-primary-foreground shadow-md ring-3 ring-background"
+              className="flex size-9 items-center justify-center rounded-full border-2 border-foreground bg-accent text-[19px] leading-none font-bold text-accent-foreground shadow-md ring-3 ring-background"
             >
               {index + 1}
             </span>
