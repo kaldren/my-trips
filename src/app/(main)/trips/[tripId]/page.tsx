@@ -63,7 +63,7 @@ export default async function TripPage({
         </div>
 
         {archived ? (
-          <div className="flex items-start gap-4 rounded-3xl border-2 border-dashed border-foreground bg-muted p-5">
+          <div className="flex items-start gap-4 rounded-3xl border-2 border-dashed border-foreground bg-water p-5">
             <IconBadge tone="plain" className="-rotate-2">
               <ArchiveIcon aria-hidden />
             </IconBadge>
@@ -117,7 +117,7 @@ export default async function TripPage({
       ) : null}
 
       {trip.message ? (
-        <blockquote className="rounded-3xl border-2 border-foreground bg-muted px-6 py-5 text-xl leading-relaxed font-semibold break-words">
+        <blockquote className="rounded-3xl border-2 border-foreground bg-land px-6 py-5 text-xl leading-relaxed font-semibold break-words">
           <p>&ldquo;{trip.message}&rdquo;</p>
         </blockquote>
       ) : null}

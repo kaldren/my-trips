@@ -17,7 +17,7 @@ const features = [
   },
   {
     icon: <MapPinned />,
-    tone: "accent",
+    tone: "secondary",
     title: "Pin the places you visit",
     description:
       "Save the cities, cafés and trails you visit, each tied to a day of the trip.",
@@ -46,7 +46,7 @@ export default function LandingPage() {
       <main className="flex-1">
         <section className="mx-auto grid w-full max-w-6xl items-center gap-12 px-6 pt-10 pb-20 lg:grid-cols-[1.1fr_1fr] lg:pt-16">
           <div className="flex flex-col items-start gap-7">
-            <span className="inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-accent px-4 py-1.5 text-sm font-extrabold">
+            <span className="inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-secondary px-4 py-1.5 text-sm font-extrabold">
               Your travel journal
             </span>
             <h1 className="text-5xl leading-[1.05] font-black sm:text-6xl lg:text-7xl">
@@ -81,7 +81,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="border-y-2 border-foreground bg-muted">
+        <section className="border-y-2 border-foreground bg-land">
           <div className="mx-auto grid w-full max-w-6xl gap-6 px-6 py-16 md:grid-cols-3">
             {features.map((feature) => (
               <Card key={feature.title} className="gap-5">
@@ -97,7 +97,7 @@ export default function LandingPage() {
 
         <section className="mx-auto w-full max-w-6xl px-6 py-20">
           <div className="flex flex-col items-start gap-6 rounded-[2.5rem] border-2 border-foreground bg-primary p-8 shadow-pop-lg sm:flex-row sm:items-center sm:justify-between sm:p-12">
-            {/* Text on Green must be large: 30px+ black weight. */}
+            {/* CTA banner: Lemon surface with Ink text. */}
             <h2 className="max-w-lg text-3xl font-black sm:text-4xl">
               Ready to pin your next adventure?
             </h2>

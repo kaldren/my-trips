@@ -10,9 +10,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "border-foreground bg-accent text-accent-foreground shadow-pop hover:-translate-y-0.5 hover:shadow-pop-lg active:translate-y-0.5 active:shadow-pop-sm motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0",
+          "border-foreground bg-primary text-primary-foreground shadow-pop hover:-translate-y-0.5 hover:shadow-pop-lg active:translate-y-0.5 active:shadow-pop-sm motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0",
         outline:
-          "border-foreground bg-background text-foreground shadow-pop hover:-translate-y-0.5 hover:bg-accent hover:shadow-pop-lg active:translate-y-0.5 active:shadow-pop-sm aria-expanded:bg-accent motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0",
+          "border-foreground bg-background text-foreground shadow-pop hover:-translate-y-0.5 hover:bg-primary hover:shadow-pop-lg active:translate-y-0.5 active:shadow-pop-sm aria-expanded:bg-primary motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0",
         secondary:
           "bg-muted text-foreground hover:bg-foreground/10 aria-expanded:bg-foreground/10",
         ghost:

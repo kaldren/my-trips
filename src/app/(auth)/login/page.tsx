@@ -15,7 +15,7 @@ export default function LoginPage({
 }) {
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
-      {/* Brand panel. Only large, black-weight text sits on Green. */}
+      {/* Brand panel: Lemon surface with Ink text. */}
       <aside className="relative hidden flex-col justify-center gap-12 overflow-hidden border-r-2 border-foreground bg-primary bg-dots p-12 lg:flex">
         <p className="max-w-md text-4xl leading-tight font-black">
           Pick up right where your last trip left off.
@@ -59,7 +59,7 @@ async function LoginNotice({
     return (
       <p
         role="status"
-        className="rounded-2xl border-2 border-foreground bg-muted px-4 py-3 text-sm font-bold"
+        className="rounded-2xl border-2 border-foreground bg-water px-4 py-3 text-sm font-bold"
       >
         Your account and all its data were deleted.
       </p>
